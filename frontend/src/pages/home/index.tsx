@@ -13,37 +13,47 @@ export const HomePage: React.FC = () => {
   const [emailText, setEmailText] = useState('')
   const navigate = useNavigate()
 
-  const simulateEmailClassification = async (): Promise<'productive' | 'improductive'> => {
-    // TODO: substituir por chamada real à API de classificação
-    return await new Promise((resolve) => {
-      setTimeout(() => {
-        const isProductive = Math.random() > 0.5
-        resolve(isProductive ? 'productive' : 'improductive')
-      }, 1500)
-    })
-  }
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
 
-  const handleProcessEmail = async () => {
     if (isProcessing) return
 
-    // Garantir que existe algum conteúdo para processar
     if (!selectedFile && !emailText.trim()) {
-      // Para um MVP, um alerta simples é suficiente; depois você pode trocar por um toast.
       alert('Envie um arquivo .txt/.pdf ou cole o texto do email antes de processar.')
       return
     }
 
-    // Exemplo de como os dados estarão prontos para o backend:
-    // const payload = { file: selectedFile, text: emailText }
+    const formData = new FormData()
+    if (selectedFile) {
+      formData.append('file', selectedFile)
+    }
+    if (emailText.trim()) {
+      formData.append('text', emailText.trim())
+    }
 
     setIsProcessing(true)
     try {
-      const result = await simulateEmailClassification()
+      const response = await fetch('http://127.0.0.1:8000/process-email', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`Erro ao processar email: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const result: 'productive' | 'improductive' =
+        data.result === 'productive' ? 'productive' : 'improductive'
+
       if (result === 'productive') {
         navigate('/productive')
       } else {
         navigate('/improductive')
       }
+    } catch (error) {
+      console.error(error)
+      alert('Ocorreu um erro ao processar o email. Tente novamente em instantes.')
     } finally {
       setIsProcessing(false)
     }
@@ -51,8 +61,10 @@ export const HomePage: React.FC = () => {
 
   return (
     <PageContainer>
-      <div className="flex flex-col h-full max-w-md w-full mx-auto py-6 md:py-8 lg:py-10">
-
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col h-full max-w-md w-full mx-auto py-6 md:py-8 lg:py-10"
+      >
         <main className="mt-6 flex-1 flex flex-col">
           <section>
             <h1 className="text-3xl font-semibold text-slate-50 leading-snug md:text-4xl lg:text-4xl">
@@ -88,14 +100,14 @@ export const HomePage: React.FC = () => {
             label={isProcessing ? 'Processando...' : 'Processar Email'}
             fullWidth
             loading={isProcessing}
-            onClick={handleProcessEmail}
+            type="submit"
           />
         </div>
 
         <div className="mt-4">
           <PrivacyNotice />
         </div>
-      </div>
+      </form>
     </PageContainer>
   )
 }
