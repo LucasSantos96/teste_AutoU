@@ -1,12 +1,42 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { PageContainer } from '../../components/common/PageContainer'
 import { UploadCard } from '../../components/email/UploadCard'
 import { OrDivider } from '../../components/email/OrDivider'
 import { EmailTextInput } from '../../components/email/EmailTextInput'
 import { PrimaryButton } from '../../components/common/PrimaryButton'
 import { PrivacyNotice } from '../../components/email/PrivacyNotice'
+import { useNavigate } from 'react-router'
 
 export const HomePage: React.FC = () => {
+  const [isProcessing, setIsProcessing] = useState(false)
+  const navigate = useNavigate()
+
+  const simulateEmailClassification = async (): Promise<'productive' | 'improductive'> => {
+    // TODO: substituir por chamada real à API de classificação
+    return await new Promise((resolve) => {
+      setTimeout(() => {
+        const isProductive = Math.random() > 0.5
+        resolve(isProductive ? 'productive' : 'improductive')
+      }, 1500)
+    })
+  }
+
+  const handleProcessEmail = async () => {
+    if (isProcessing) return
+
+    setIsProcessing(true)
+    try {
+      const result = await simulateEmailClassification()
+      if (result === 'productive') {
+        navigate('/productive')
+      } else {
+        navigate('/improductive')
+      }
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
   return (
     <PageContainer>
       <div className="flex flex-col h-full max-w-md w-full mx-auto py-6 md:py-8 lg:py-10">
@@ -37,7 +67,12 @@ export const HomePage: React.FC = () => {
         </main>
 
         <div className="mt-6">
-          <PrimaryButton label="Processar Email" fullWidth />
+          <PrimaryButton
+            label={isProcessing ? 'Processando...' : 'Processar Email'}
+            fullWidth
+            loading={isProcessing}
+            onClick={handleProcessEmail}
+          />
         </div>
 
         <div className="mt-4">

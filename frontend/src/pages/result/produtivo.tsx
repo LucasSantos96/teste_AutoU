@@ -1,9 +1,52 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { PageContainer } from '../../components/common/PageContainer'
 import { PrimaryButton } from '../../components/common/PrimaryButton'
 import { ChevronLeft, RefreshCcw, ThumbsUp, ThumbsDown, Copy, Edit3 } from 'lucide-react'
+import { useNavigate } from 'react-router'
+
+const PRODUTIVO_RESPONSE = `"Prezado cliente,
+
+Agradecemos o seu contato e o interesse em nossos serviços. Informamos que sua solicitação já foi encaminhada ao nosso setor de atendimento especializado.
+
+Um de nossos consultores entrará em contato em até 24 horas úteis para fornecer uma posição definitiva sobre o seu caso.
+
+Atenciosamente,
+Equipe de Suporte Estratégico"`
+
+const copyToClipboard = async (text: string) => {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(text)
+    return
+  }
+
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.style.position = 'fixed'
+  textarea.style.opacity = '0'
+  document.body.appendChild(textarea)
+  textarea.focus()
+  textarea.select()
+  try {
+    document.execCommand('copy')
+  } finally {
+    document.body.removeChild(textarea)
+  }
+}
 
 export const ProdutivoResultPage: React.FC = () => {
+  const navigate = useNavigate()
+  const [copied, setCopied] = useState(false)
+
+  const handleGoBack = () => {
+    navigate('/')
+  }
+
+  const handleCopy = async () => {
+    await copyToClipboard(PRODUTIVO_RESPONSE)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1800)
+  }
+
   return (
     <PageContainer>
       <div className="flex flex-col h-full max-w-md w-full mx-auto py-6 md:py-8 lg:py-10">
@@ -12,6 +55,7 @@ export const ProdutivoResultPage: React.FC = () => {
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900/80 border border-slate-700/70 text-slate-200 hover:bg-slate-800 transition-colors"
             aria-label="Voltar"
+            onClick={handleGoBack}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -46,21 +90,16 @@ export const ProdutivoResultPage: React.FC = () => {
               <div className="relative rounded-3xl bg-slate-900/80 border border-slate-700/80 overflow-hidden flex-1 flex flex-col">
                 <div className="h-1.5 w-full bg-linear-to-r from-blue-500 to-blue-400" />
                 <div className="p-5 flex-1">
-                  <p className="text-sm leading-relaxed text-slate-100/90 whitespace-pre-line">
-                    {`"Prezado cliente,
-
-Agradecemos o seu contato e o interesse em nossos serviços. Informamos que sua solicitação já foi encaminhada ao nosso setor de atendimento especializado.
-
-Um de nossos consultores entrará em contato em até 24 horas úteis para fornecer uma posição definitiva sobre o seu caso.
-
-Atenciosamente,
-Equipe de Suporte Estratégico"`}
-                  </p>
+                  <p className="text-sm leading-relaxed text-slate-100/90 whitespace-pre-line">{PRODUTIVO_RESPONSE}</p>
                 </div>
 
                 <div className="border-t border-slate-800 px-5 py-3 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <IconCircleButton icon={Copy} label="Copiar" />
+                    <IconCircleButton
+                      icon={Copy}
+                      label="Copiar"
+                      onClick={handleCopy}
+                    />
                     <IconCircleButton icon={Edit3} label="Editar" />
                   </div>
                   <PrimaryButton label="Enviar" />
@@ -68,6 +107,12 @@ Equipe de Suporte Estratégico"`}
               </div>
             </div>
           </section>
+
+          {copied && (
+            <section className="pt-1 -mt-3">
+              <p className="text-[11px] text-center text-emerald-400">Resposta copiada para a área de transferência.</p>
+            </section>
+          )}
 
           <section className="pb-4">
             <p className="text-xs tracking-[0.22em] text-slate-500 text-center mb-3">
@@ -87,13 +132,15 @@ Equipe de Suporte Estratégico"`}
 interface IconCircleButtonProps {
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
   label: string
+  onClick?: () => void
 }
 
-const IconCircleButton: React.FC<IconCircleButtonProps> = ({ icon: Icon, label }) => {
+const IconCircleButton: React.FC<IconCircleButtonProps> = ({ icon: Icon, label, onClick }) => {
   return (
     <button
       type="button"
-      className="flex flex-col items-center gap-1 text-[11px] text-slate-300"
+      className="flex flex-col items-center gap-1 text-[11px] text-slate-300 transition-transform active:scale-95"
+      onClick={onClick}
     >
       <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-800 text-slate-100">
         <Icon className="h-4 w-4" />

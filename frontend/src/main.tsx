@@ -11,8 +11,8 @@ createRoot(document.getElementById('root')!).render(
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<App />} />
-      <Route path="/analysis" element={<ProdutivoResultPage />} />
-      <Route path="/result" element={<ImprodutivoResultPage />} />
+      <Route path="/productive" element={<ProdutivoResultPage />} />
+      <Route path="/improductive" element={<ImprodutivoResultPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   </BrowserRouter>,
