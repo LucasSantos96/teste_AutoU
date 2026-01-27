@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { PageContainer } from '../../components/common/PageContainer'
 import { PrimaryButton } from '../../components/common/PrimaryButton'
-import { Archive, ChevronLeft, Info, MoreVertical, Edit3 } from 'lucide-react'
+import { Archive, ChevronLeft, Info, Edit3 } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
 const IMPRODUTIVO_RESPONSE = `"Olá, agradecemos o seu contato. No momento, não conseguimos dar prosseguimento a esta solicitação. Atenciosamente, Equipe de Suporte."`
@@ -55,10 +55,9 @@ export const ImprodutivoResultPage: React.FC = () => {
           <h1 className="text-sm font-medium text-slate-200">Resultado da Análise</h1>
           <button
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900/80 border border-slate-700/70 text-slate-200 hover:bg-slate-800 transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-transparent"
             aria-label="Mais opções"
           >
-            <MoreVertical className="h-4 w-4" />
           </button>
         </header>
 
@@ -85,8 +84,7 @@ export const ImprodutivoResultPage: React.FC = () => {
             <h2 className="text-base font-semibold text-slate-50">Resposta Automática Sugerida</h2>
 
             <div className="mt-4 rounded-3xl bg-linear-to-b from-red-950 via-slate-950 to-slate-950 border border-slate-800/80 overflow-hidden">
-              <div className="h-28 flex items-center justify-center">
-                <span className="text-4xl font-semibold text-red-500">Rᵒ</span>
+              <div className="h-6 flex items-center justify-center">
               </div>
 
               <div className="border-t border-slate-800 px-4 py-3 flex items-center gap-2">
@@ -115,7 +113,7 @@ export const ImprodutivoResultPage: React.FC = () => {
                     <Edit3 className="h-4 w-4" />
                   </button>
                 </div>
-                
+
               </div>
             </div>
           </section>
