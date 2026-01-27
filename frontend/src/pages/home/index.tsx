@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router'
 
 export const HomePage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [emailText, setEmailText] = useState('')
   const navigate = useNavigate()
 
   const simulateEmailClassification = async (): Promise<'productive' | 'improductive'> => {
@@ -23,6 +25,16 @@ export const HomePage: React.FC = () => {
 
   const handleProcessEmail = async () => {
     if (isProcessing) return
+
+    // Garantir que existe algum conteúdo para processar
+    if (!selectedFile && !emailText.trim()) {
+      // Para um MVP, um alerta simples é suficiente; depois você pode trocar por um toast.
+      alert('Envie um arquivo .txt/.pdf ou cole o texto do email antes de processar.')
+      return
+    }
+
+    // Exemplo de como os dados estarão prontos para o backend:
+    // const payload = { file: selectedFile, text: emailText }
 
     setIsProcessing(true)
     try {
@@ -54,7 +66,12 @@ export const HomePage: React.FC = () => {
           </section>
 
           <section className="mt-8">
-            <UploadCard />
+            <UploadCard
+              onFileSelected={(file) => {
+                setSelectedFile(file)
+              }}
+              selectedFileName={selectedFile?.name}
+            />
           </section>
 
           <section className="mt-6">
@@ -62,7 +79,7 @@ export const HomePage: React.FC = () => {
           </section>
 
           <section className="mt-6 flex-1 flex flex-col">
-            <EmailTextInput />
+            <EmailTextInput value={emailText} onChange={setEmailText} />
           </section>
         </main>
 
