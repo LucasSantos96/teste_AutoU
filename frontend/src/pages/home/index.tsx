@@ -48,7 +48,7 @@ export const HomePage: React.FC = () => {
 
       const data = await response.json()
       const result: 'productive' | 'unproductive' =
-        data.result === 'productive' ? 'productive' : 'unproductive'
+        data.category === 'productive' ? 'productive' : 'unproductive'
 
       if (result === 'productive') {
         navigate('/productive')
