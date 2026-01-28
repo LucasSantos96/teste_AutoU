@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { UploadCloud } from 'lucide-react'
+import { useTheme } from '../../app/ThemeContext.tsx'
 
 interface UploadCardProps {
   onFileSelected: (file: File) => void
@@ -17,6 +18,8 @@ const isAcceptedFile = (file: File) => {
 export const UploadCard: React.FC<UploadCardProps> = ({ onFileSelected, selectedFileName }) => {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
 
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return
@@ -57,33 +60,52 @@ export const UploadCard: React.FC<UploadCardProps> = ({ onFileSelected, selected
   return (
     <div
       className={`rounded-3xl border border-dashed px-5 py-7 shadow-inner transition ${
-        isDragging ? 'border-blue-500 bg-slate-900/80' : 'border-slate-600/70 bg-slate-900/60'
+        isDragging
+          ? isDark
+            ? 'border-blue-500 bg-slate-900/80'
+            : 'border-blue-400 bg-white'
+          : isDark
+            ? 'border-slate-600/70 bg-slate-900/60'
+            : 'border-slate-300 bg-white shadow-lg shadow-slate-200/80'
       }`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <div className="flex flex-col items-center text-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 text-blue-400">
+        <div
+          className={`flex h-14 w-14 items-center justify-center rounded-2xl ${
+            isDark ? 'bg-slate-800 text-blue-400' : 'bg-slate-100 text-blue-600'
+          }`}
+        >
           <UploadCloud className="h-7 w-7" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-slate-50">Upload de Arquivo</h2>
-          <p className="mt-1 text-xs text-slate-300/80">
-            Arraste arquivos <span className="font-medium text-slate-100">.txt</span> ou{' '}
-            <span className="font-medium text-slate-100">.pdf</span> aqui
+          <h2 className={`text-base font-semibold ${isDark ? 'text-slate-50' : 'text-slate-900'}`}>
+            Upload de Arquivo
+          </h2>
+          <p className={`mt-1 text-xs ${isDark ? 'text-slate-300/80' : 'text-slate-600'}`}>
+            Arraste arquivos{' '}
+            <span className={`font-medium ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>.txt</span> ou{' '}
+            <span className={`font-medium ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>.pdf</span> aqui
           </p>
           {selectedFileName && (
-            <p className="mt-2 text-[11px] text-slate-400">
+            <p className={`mt-2 text-[11px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               Arquivo selecionado:{' '}
-              <span className="font-medium text-slate-100 break-all">{selectedFileName}</span>
+              <span className={`font-medium break-all ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>
+                {selectedFileName}
+              </span>
             </p>
           )}
         </div>
 
         <button
           type="button"
-          className="mt-3 inline-flex items-center justify-center rounded-2xl bg-slate-100/90 px-4 py-2 text-xs font-semibold text-slate-900 shadow-sm hover:bg-white transition-colors"
+          className={`mt-3 inline-flex items-center justify-center rounded-2xl px-4 py-2 text-xs font-semibold shadow-sm transition-colors ${
+            isDark
+              ? 'bg-slate-100/90 text-slate-900 hover:bg-white'
+              : 'bg-slate-900 text-white hover:bg-slate-800'
+          }`}
           onClick={handleClickSelect}
         >
           Selecionar Arquivo

@@ -6,6 +6,7 @@ import { EmailTextInput } from '../../components/email/EmailTextInput'
 import { PrimaryButton } from '../../components/common/PrimaryButton'
 import { PrivacyNotice } from '../../components/email/PrivacyNotice'
 import { useNavigate } from 'react-router'
+import { useTheme } from '../../app/ThemeContext.tsx'
 
 
 
@@ -14,6 +15,8 @@ export const HomePage: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [emailText, setEmailText] = useState('')
   const navigate = useNavigate()
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
 
   const ROTA_API = import.meta.env.VITE_ROUTE_API as string
 
@@ -71,12 +74,20 @@ export const HomePage: React.FC = () => {
       >
         <main className="mt-6 flex-1 flex flex-col">
           <section>
-            <h1 className="text-3xl font-semibold text-slate-50 leading-snug md:text-4xl lg:text-4xl">
+            <h1
+              className={`text-3xl font-semibold leading-snug md:text-4xl lg:text-4xl ${
+                isDark ? 'text-slate-50' : 'text-slate-900'
+              }`}
+            >
               Classificação Automática
               <br />
               de Emails
             </h1>
-            <p className="mt-3 text-sm text-slate-300/80 md:text-base">
+            <p
+              className={`mt-3 text-sm md:text-base ${
+                isDark ? 'text-slate-300/80' : 'text-slate-600'
+              }`}
+            >
               Envie um documento ou cole o conteúdo para identificar a intenção do email usando IA.
             </p>
           </section>

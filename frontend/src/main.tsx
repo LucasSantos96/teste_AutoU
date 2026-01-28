@@ -6,14 +6,17 @@ import { BrowserRouter, Route, Routes } from 'react-router'
 import { ImprodutivoResultPage } from './pages/result/improdutivo'
 import { ProdutivoResultPage } from './pages/result/produtivo'
 import { NotFoundPage } from './pages/not-found'
+import { ThemeProvider } from './app/ThemeContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<App />} />
-      <Route path="/productive" element={<ProdutivoResultPage />} />
-      <Route path="/unproductive" element={<ImprodutivoResultPage />} />
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
-  </BrowserRouter>,
+  <ThemeProvider>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<App />} />
+        <Route path="/productive" element={<ProdutivoResultPage />} />
+        <Route path="/unproductive" element={<ImprodutivoResultPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </BrowserRouter>
+  </ThemeProvider>,
 )
