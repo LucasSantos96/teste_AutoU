@@ -1,9 +1,16 @@
-from fastapi import APIRouter, UploadFile, File, Form  # pyright: ignore[reportMissingImports]
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    File,
+    Form,
+)  # pyright: ignore[reportMissingImports]
 from app.services.file_reader import read_file
 from app.services.classifier import classify_email
+from app.services.response import generate_response
 
 
 router = APIRouter()
+
 
 @router.post("/api")
 async def process_email(
@@ -17,15 +24,10 @@ async def process_email(
 
     elif file:
         content = await read_file(file)
-    else: 
-        return {"error": "Nenhum conteúdo enviado"}    
+    else:
+        return {"error": "Nenhum conteúdo enviado"}
 
-    result = classify_email(content)
+    category = classify_email(content)
+    response_text = generate_response(category)
 
-  
-
-    return {
-        "result": result,
-        "content_preview": content[:300],
-        
-    }
+    return {"category": category, "response": response_text, "preview": content[:300]}
