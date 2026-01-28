@@ -5,7 +5,7 @@ from app.services.classifier import classify_email
 
 router = APIRouter()
 
-@router.post("/process-email")
+@router.post("/api")
 async def process_email(
     text: str | None = Form(None),
     file: UploadFile | None = File(None),
@@ -22,8 +22,7 @@ async def process_email(
 
     result = classify_email(content)
 
-
-
+  
 
     return {
         "result": result,
