@@ -7,11 +7,15 @@ import { PrimaryButton } from '../../components/common/PrimaryButton'
 import { PrivacyNotice } from '../../components/email/PrivacyNotice'
 import { useNavigate } from 'react-router'
 
+
+
 export const HomePage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [emailText, setEmailText] = useState('')
   const navigate = useNavigate()
+
+  const ROTA_API = import.meta.env.VITE_ROUTE_API as string
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -33,7 +37,7 @@ export const HomePage: React.FC = () => {
 
     setIsProcessing(true)
     try {
-      const response = await fetch('http://127.0.0.1:8000/process-email', {
+      const response = await fetch(ROTA_API, {
         method: 'POST',
         body: formData,
       })
@@ -43,13 +47,13 @@ export const HomePage: React.FC = () => {
       }
 
       const data = await response.json()
-      const result: 'productive' | 'improductive' =
-        data.result === 'productive' ? 'productive' : 'improductive'
+      const result: 'productive' | 'unproductive' =
+        data.result === 'productive' ? 'productive' : 'unproductive'
 
       if (result === 'productive') {
         navigate('/productive')
       } else {
-        navigate('/improductive')
+        navigate('/unproductive')
       }
     } catch (error) {
       console.error(error)

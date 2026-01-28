@@ -12,7 +12,7 @@ createRoot(document.getElementById('root')!).render(
     <Routes>
       <Route path="/" element={<App />} />
       <Route path="/productive" element={<ProdutivoResultPage />} />
-      <Route path="/improductive" element={<ImprodutivoResultPage />} />
+      <Route path="/unproductive" element={<ImprodutivoResultPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   </BrowserRouter>,
