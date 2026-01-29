@@ -1,11 +1,20 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { PageContainer } from '../../components/common/PageContainer'
 import { PrimaryButton } from '../../components/common/PrimaryButton'
-import { Archive, ChevronLeft, Info, Edit3 } from 'lucide-react'
-import { useNavigate } from 'react-router'
+import { Archive, ChevronLeft, Info, Edit3, RefreshCcw } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router'
 import { useTheme } from '../../app/ThemeContext.tsx'
 
-const IMPRODUTIVO_RESPONSE = `"Olá, agradecemos o seu contato. No momento, não conseguimos dar prosseguimento a esta solicitação. Atenciosamente, Equipe de Suporte."`
+const FALLBACK_RESPONSE = `"Olá, agradecemos o seu contato.
+
+Sua mensagem foi classificada como IMPRODUTIVA e não requer ação imediata.
+
+Caso tenha alguma dúvida ou solicitação específica, por favor, nos envie uma nova mensagem com mais detalhes.
+
+Atenciosamente,
+Equipe de Atendimento."`
+
+const ROTA_API = import.meta.env.VITE_ROUTE_API as string
 
 const copyToClipboard = async (text: string) => {
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -29,16 +38,67 @@ const copyToClipboard = async (text: string) => {
 
 export const ImprodutivoResultPage: React.FC = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const [copied, setCopied] = useState(false)
   const { theme } = useTheme()
   const isDark = theme === 'dark'
+
+  const { responseText } = useMemo(() => {
+    const state = location.state as
+      | { response_text?: string; processed_text?: string; category?: string }
+      | null
+
+    return {
+      responseText: state?.response_text?.trim() || FALLBACK_RESPONSE,
+    }
+  }, [location.state])
 
   const handleGoBack = () => {
     navigate('/')
   }
 
+  const handleReload = async () => {
+    const state = location.state as
+      | { response_text?: string; processed_text?: string; category?: string }
+      | null
+
+    const baseText = state?.processed_text?.trim()
+
+    if (!baseText) {
+      alert('Não foi possível reprocessar: conteúdo original indisponível.')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('text', baseText)
+
+    try {
+      const response = await fetch(ROTA_API, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`Erro ao reprocessar email: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const result: 'productive' | 'unproductive' =
+        data.category === 'productive' ? 'productive' : 'unproductive'
+
+      if (result === 'productive') {
+        navigate('/productive', { state: data })
+      } else {
+        navigate('/unproductive', { state: data })
+      }
+    } catch (error) {
+      console.error(error)
+      alert('Ocorreu um erro ao reprocessar o email. Tente novamente em instantes.')
+    }
+  }
+
   const handleCopy = async () => {
-    await copyToClipboard(IMPRODUTIVO_RESPONSE)
+    await copyToClipboard(responseText)
     setCopied(true)
     setTimeout(() => setCopied(false), 1800)
   }
@@ -64,9 +124,15 @@ export const ImprodutivoResultPage: React.FC = () => {
           </h1>
           <button
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-transparent"
-            aria-label="Mais opções"
+            className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
+              isDark
+                ? 'bg-slate-900/80 border-slate-700/70 text-slate-200 hover:bg-slate-800'
+                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+            }`}
+            aria-label="Reanalisar"
+            onClick={handleReload}
           >
+            <RefreshCcw className="h-4 w-4" />
           </button>
         </header>
 
@@ -129,7 +195,7 @@ export const ImprodutivoResultPage: React.FC = () => {
 
               <div className="px-5 pt-1 pb-4">
                 <div className={`rounded-2xl px-4 py-3 border ${isDark ? 'bg-slate-900/80 border-slate-700/80' : 'bg-slate-50 border-slate-200'}`}>
-                  <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-100/90' : 'text-slate-800'}`}>{IMPRODUTIVO_RESPONSE}</p>
+                  <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-100/90' : 'text-slate-800'}`}>{responseText}</p>
                 </div>
 
                 <div className="mt-4 flex items-center gap-2">

@@ -1,18 +1,20 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { PageContainer } from '../../components/common/PageContainer'
 import { PrimaryButton } from '../../components/common/PrimaryButton'
 import { ChevronLeft, RefreshCcw, ThumbsUp, ThumbsDown, Copy, Edit3 } from 'lucide-react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { useTheme } from '../../app/ThemeContext.tsx'
 
-const PRODUTIVO_RESPONSE = `"Prezado cliente,
+const FALLBACK_RESPONSE = `"Prezado cliente,
 
-Agradecemos o seu contato e o interesse em nossos serviços. Informamos que sua solicitação já foi encaminhada ao nosso setor de atendimento especializado.
+Agradecemos o seu contato. Sua mensagem foi classificada como PRODUTIVA e já foi encaminhada para análise pela nossa equipe.
 
-Um de nossos consultores entrará em contato em até 24 horas úteis para fornecer uma posição definitiva sobre o seu caso.
+Em breve você receberá um retorno com mais detalhes.
 
 Atenciosamente,
-Equipe de Suporte Estratégico"`
+Equipe de Atendimento"`
+
+const ROTA_API = import.meta.env.VITE_ROUTE_API as string
 
 const copyToClipboard = async (text: string) => {
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -36,16 +38,67 @@ const copyToClipboard = async (text: string) => {
 
 export const ProdutivoResultPage: React.FC = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const [copied, setCopied] = useState(false)
   const { theme } = useTheme()
   const isDark = theme === 'dark'
+
+  const { responseText } = useMemo(() => {
+    const state = location.state as
+      | { response_text?: string; processed_text?: string; category?: string }
+      | null
+
+    return {
+      responseText: state?.response_text?.trim() || FALLBACK_RESPONSE,
+    }
+  }, [location.state])
 
   const handleGoBack = () => {
     navigate('/')
   }
 
+  const handleReload = async () => {
+    const state = location.state as
+      | { response_text?: string; processed_text?: string; category?: string }
+      | null
+
+    const baseText = state?.processed_text?.trim()
+
+    if (!baseText) {
+      alert('Não foi possível reprocessar: conteúdo original indisponível.')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('text', baseText)
+
+    try {
+      const response = await fetch(ROTA_API, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`Erro ao reprocessar email: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const result: 'productive' | 'unproductive' =
+        data.category === 'productive' ? 'productive' : 'unproductive'
+
+      if (result === 'productive') {
+        navigate('/productive', { state: data })
+      } else {
+        navigate('/unproductive', { state: data })
+      }
+    } catch (error) {
+      console.error(error)
+      alert('Ocorreu um erro ao reprocessar o email. Tente novamente em instantes.')
+    }
+  }
+
   const handleCopy = async () => {
-    await copyToClipboard(PRODUTIVO_RESPONSE)
+    await copyToClipboard(responseText)
     setCopied(true)
     setTimeout(() => setCopied(false), 1800)
   }
@@ -77,6 +130,7 @@ export const ProdutivoResultPage: React.FC = () => {
                 : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
             }`}
             aria-label="Reanalisar"
+            onClick={handleReload}
           >
             <RefreshCcw className="h-4 w-4" />
           </button>
@@ -124,7 +178,7 @@ export const ProdutivoResultPage: React.FC = () => {
                 <div className={`h-1.5 w-full ${isDark ? 'bg-linear-to-r from-blue-500 to-blue-400' : 'bg-blue-500'}`} />
                 <div className="p-5 flex-1">
                   <p className={`text-sm leading-relaxed whitespace-pre-line ${isDark ? 'text-slate-100/90' : 'text-slate-800'}`}>
-                    {PRODUTIVO_RESPONSE}
+                    {responseText}
                   </p>
                 </div>
 
