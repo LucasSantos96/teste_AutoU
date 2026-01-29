@@ -2,25 +2,23 @@ from app.services.keywords import (
     PRODUCTIVE_KEYWORDS,
     UNPRODUCTIVE_KEYWORDS
 )
+from typing import Tuple
 
-
-def classify_email(content: str) -> str:
+def classify_email(content: str) -> Tuple[str,float]:
     #classifica emails como produtivo e improdutivo
 
-    text = content.lower()
 
-    productive_score = 0
-    unproductive_score = 0
+    score = 0
 
     for word in PRODUCTIVE_KEYWORDS:
-        if word in text:
-            productive_score += 1
+        if word in content:
+            score += 1
 
     for word in UNPRODUCTIVE_KEYWORDS:
-        if word in text:
-            unproductive_score += 1
+        if word in content:
+            score -= 1
 
-    if productive_score >= 1 and productive_score >= unproductive_score:
-        return "productive"
+    if score > 0:
+        return "productive", min(score / 5, 1.0)
 
-    return "unproductive"
+    return "unproductive", min(abs(score) / 5, 1.0)

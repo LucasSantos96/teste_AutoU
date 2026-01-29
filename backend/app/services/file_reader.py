@@ -1,31 +1,30 @@
-import pdfplumber  # pyright: ignore[reportMissingImports]
 from fastapi import UploadFile  # pyright: ignore[reportMissingImports]
 import io
 
+import pdfplumber  # pyright: ignore[reportMissingImports]
 
-def read_txt(file_bytes: bytes) -> str:
-    return file_bytes.decode('utf-8', errors='ignore')
-
-
-def read_pdf(file_bytes: bytes) -> str:
-    text = ""
-
-    with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-        for page in pdf.pages:
-           page_text = page.extract_text()
-        if page_text:
-            text += page_text + "\n"
-            
-    return text
 
 async def read_file(file: UploadFile) -> str:
-        file_bytes = await file.read()
-        filename = file.filename.lower()
+    """
+    Lê o conteúdo de um arquivo enviado via UploadFile.
+    - .txt: decodifica como UTF-8
+    - .pdf: extrai texto de todas as páginas
+    """
+    file_bytes = await file.read()
+    filename = (file.filename or "").lower()
 
-        if filename.endswith('.txt'):
-            return read_txt(file_bytes)
+    if filename.endswith(".txt"):
+        return file_bytes.decode("utf-8", errors="ignore")
 
-        if filename.endswith('.pdf'):
-            return read_pdf(file_bytes)
+    if filename.endswith(".pdf"):
+        text = ""
+        with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
 
-        raise ValueError(f"Arquivo não suportado")
+        return text.strip()
+
+    raise ValueError("Arquivo não suportado. Envie um arquivo .txt ou .pdf.")
+

@@ -4,10 +4,12 @@ from fastapi import (  # pyright: ignore[reportMissingImports]
     File,
     Form,
 )  # pyright: ignore[reportMissingImports]
-from app.services.file_reader import read_file
+
 from app.services.classifier import classify_email
 from app.services.response import generate_response
 from app.services.nlp_preprocess import preprocess_text
+from app.services.ai_classifier import classify_with_ai
+from app.services.file_reader import read_file
 
 
 router = APIRouter()
@@ -25,13 +27,28 @@ async def process_email(
         content = text
 
     elif file:
-        raw = await file.read()
-        content = raw.decode("utf-8", errors='ignore')
+        try:
+            content = await read_file(file)
+        except ValueError as exc:
+            return {"error": str(exc)}
     else:
         return {"error": "Nenhum conteúdo enviado"}
 
+    #NLP
     processed_text = preprocess_text(content)
-    #category = classify_email(content)
-    #response_text = generate_response(category)
 
-    return {"processed_text": processed_text}
+    #CLASSIFIER
+    category, confidence = classify_email(processed_text)
+
+    #RESPOSTA AUTOMATICA
+    if confidence < 0.6:
+        category, response_text = classify_with_ai(processed_text)
+    else:
+        response_text = generate_response(category)
+
+    return {
+        "processed_text": processed_text,
+        "category": category,
+        "confidence": confidence,
+        "response_text": response_text[:300]
+    }
