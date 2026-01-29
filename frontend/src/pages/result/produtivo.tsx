@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { PageContainer } from '../../components/common/PageContainer'
 import { PrimaryButton } from '../../components/common/PrimaryButton'
-import { ChevronLeft, RefreshCcw, ThumbsUp, ThumbsDown, Copy, Edit3 } from 'lucide-react'
+import { ChevronLeft, RefreshCcw, ThumbsUp, ThumbsDown } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router'
 import { useTheme } from '../../app/ThemeContext.tsx'
 
@@ -14,7 +14,8 @@ Em breve você receberá um retorno com mais detalhes.
 Atenciosamente,
 Equipe de Atendimento"`
 
-const ROTA_API = import.meta.env.VITE_ROUTE_API as string
+// Usa URL relativa - o Nginx faz proxy reverso para o backend
+const ROTA_API = "/api"
 
 const copyToClipboard = async (text: string) => {
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -40,6 +41,7 @@ export const ProdutivoResultPage: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const [copied, setCopied] = useState(false)
+  const [isReloading, setIsReloading] = useState(false)
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
@@ -58,6 +60,9 @@ export const ProdutivoResultPage: React.FC = () => {
   }
 
   const handleReload = async () => {
+    // Previne múltiplos cliques durante o processamento
+    if (isReloading) return
+
     const state = location.state as
       | { response_text?: string; processed_text?: string; category?: string }
       | null
@@ -68,6 +73,8 @@ export const ProdutivoResultPage: React.FC = () => {
       alert('Não foi possível reprocessar: conteúdo original indisponível.')
       return
     }
+
+    setIsReloading(true)
 
     const formData = new FormData()
     formData.append('text', baseText)
@@ -94,6 +101,8 @@ export const ProdutivoResultPage: React.FC = () => {
     } catch (error) {
       console.error(error)
       alert('Ocorreu um erro ao reprocessar o email. Tente novamente em instantes.')
+    } finally {
+      setIsReloading(false)
     }
   }
 
@@ -124,15 +133,20 @@ export const ProdutivoResultPage: React.FC = () => {
           </h1>
           <button
             type="button"
-            className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
-              isDark
-                ? 'bg-slate-900/80 border-slate-700/70 text-slate-200 hover:bg-slate-800'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+            disabled={isReloading}
+            className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all ${
+              isReloading
+                ? 'cursor-not-allowed opacity-60'
+                : isDark
+                  ? 'bg-slate-900/80 border-slate-700/70 text-slate-200 hover:bg-slate-800'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
             }`}
-            aria-label="Reanalisar"
+            aria-label={isReloading ? 'Processando...' : 'Reanalisar'}
             onClick={handleReload}
           >
-            <RefreshCcw className="h-4 w-4" />
+            <RefreshCcw
+              className={`h-4 w-4 transition-transform ${isReloading ? 'animate-spin' : ''}`}
+            />
           </button>
         </header>
 
@@ -212,34 +226,6 @@ export const ProdutivoResultPage: React.FC = () => {
         </main>
       </div>
     </PageContainer>
-  )
-}
-
-interface IconCircleButtonProps {
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
-  label: string
-  onClick?: () => void
-  isDark: boolean
-}
-
-const IconCircleButton: React.FC<IconCircleButtonProps> = ({ icon: Icon, label, onClick, isDark }) => {
-  return (
-    <button
-      type="button"
-      className={`flex flex-col items-center gap-1 text-[11px] transition-transform active:scale-95 ${
-        isDark ? 'text-slate-300' : 'text-slate-600'
-      }`}
-      onClick={onClick}
-    >
-      <span
-        className={`flex h-9 w-9 items-center justify-center rounded-full ${
-          isDark ? 'bg-slate-800 text-slate-100' : 'bg-slate-100 text-slate-700'
-        }`}
-      >
-        <Icon className="h-4 w-4" />
-      </span>
-      <span>{label}</span>
-    </button>
   )
 }
 

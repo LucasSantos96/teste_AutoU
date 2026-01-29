@@ -14,7 +14,8 @@ Caso tenha alguma dúvida ou solicitação específica, por favor, nos envie uma
 Atenciosamente,
 Equipe de Atendimento."`
 
-const ROTA_API = import.meta.env.VITE_ROUTE_API as string
+// Usa URL relativa - o Nginx faz proxy reverso para o backend
+const ROTA_API = "/api"
 
 const copyToClipboard = async (text: string) => {
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -40,6 +41,7 @@ export const ImprodutivoResultPage: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const [copied, setCopied] = useState(false)
+  const [isReloading, setIsReloading] = useState(false)
   const { theme } = useTheme()
   const isDark = theme === 'dark'
 
@@ -58,6 +60,9 @@ export const ImprodutivoResultPage: React.FC = () => {
   }
 
   const handleReload = async () => {
+    // Previne múltiplos cliques durante o processamento
+    if (isReloading) return
+
     const state = location.state as
       | { response_text?: string; processed_text?: string; category?: string }
       | null
@@ -68,6 +73,8 @@ export const ImprodutivoResultPage: React.FC = () => {
       alert('Não foi possível reprocessar: conteúdo original indisponível.')
       return
     }
+
+    setIsReloading(true)
 
     const formData = new FormData()
     formData.append('text', baseText)
@@ -94,6 +101,8 @@ export const ImprodutivoResultPage: React.FC = () => {
     } catch (error) {
       console.error(error)
       alert('Ocorreu um erro ao reprocessar o email. Tente novamente em instantes.')
+    } finally {
+      setIsReloading(false)
     }
   }
 
@@ -124,15 +133,20 @@ export const ImprodutivoResultPage: React.FC = () => {
           </h1>
           <button
             type="button"
-            className={`flex h-9 w-9 items-center justify-center rounded-full border transition-colors ${
-              isDark
-                ? 'bg-slate-900/80 border-slate-700/70 text-slate-200 hover:bg-slate-800'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+            disabled={isReloading}
+            className={`flex h-9 w-9 items-center justify-center rounded-full border transition-all ${
+              isReloading
+                ? 'cursor-not-allowed opacity-60'
+                : isDark
+                  ? 'bg-slate-900/80 border-slate-700/70 text-slate-200 hover:bg-slate-800'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
             }`}
-            aria-label="Reanalisar"
+            aria-label={isReloading ? 'Processando...' : 'Reanalisar'}
             onClick={handleReload}
           >
-            <RefreshCcw className="h-4 w-4" />
+            <RefreshCcw
+              className={`h-4 w-4 transition-transform ${isReloading ? 'animate-spin' : ''}`}
+            />
           </button>
         </header>
 
