@@ -1,73 +1,143 @@
-# React + TypeScript + Vite
+# Frontend – AutoU Classificador de Emails
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interface web da aplicação **AutoU**, que classifica e-mails corporativos como **produtivos** ou **improdutivos** e sugere respostas automáticas. O frontend é uma SPA (Single Page Application) construída com **React**, **TypeScript** e **Vite**.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Visão geral
 
-## React Compiler
+- O usuário envia o conteúdo do e-mail (colando texto ou fazendo upload de arquivo `.txt` ou `.pdf`).
+- A aplicação envia os dados para a API do backend e exibe o resultado da classificação.
+- As telas de resultado mostram a categoria (Produtivo / Improdutivo) e a resposta automática sugerida, com opção de copiar e de reanalisar.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Tecnologia | Uso |
+|------------|-----|
+| **React 19** | Biblioteca de UI |
+| **TypeScript** | Tipagem estática |
+| **Vite 7** | Build e dev server |
+| **React Router 7** | Roteamento SPA |
+| **Tailwind CSS 4** | Estilização |
+| **Lucide React** | Ícones |
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Estrutura do projeto
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+frontend/
+├── public/              # Arquivos estáticos públicos
+├── src/
+│   ├── app/             # App principal e contexto (tema)
+│   ├── assets/          # Imagens e recursos
+│   ├── components/      # Componentes reutilizáveis
+│   │   ├── common/      # PageContainer, PrimaryButton
+│   │   └── email/       # UploadCard, EmailTextInput, etc.
+│   ├── pages/           # Páginas por rota
+│   │   ├── home/        # Tela inicial (envio de email)
+│   │   ├── result/      # Telas de resultado (produtivo, improdutivo)
+│   │   └── not-found/   # 404
+│   ├── index.css        # Estilos globais
+│   └── main.tsx         # Entry point e rotas
+├── index.html
+├── package.json
+├── vite.config.ts
+├── nginx.conf           # Configuração Nginx (Docker)
+└── Dockerfile           # Build para produção
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Requisitos
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
+- **Node.js** >= 18
+- **npm** (ou outro gerenciador compatível)
+
+---
+
+## Executar localmente
+
+### 1. Instalar dependências
+
+```bash
+cd frontend
+npm install
+```
+
+### 2. Comunicação com o backend
+
+O frontend chama a API em **`/api`** (URL relativa). Assim:
+
+- **Com Docker**: o Nginx faz proxy de `/api` para o backend; não é necessário configurar variáveis de ambiente.
+- **Só Vite (npm run dev)**: o navegador resolve `/api` como `http://localhost:5173/api`, então as requisições não chegam ao backend. Configure um **proxy** no `vite.config.ts`:
+
+```ts
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8000',
     },
   },
-])
+})
 ```
+
+Assim, requisições para `http://localhost:5173/api` são encaminhadas para `http://localhost:8000/api`.
+
+### 3. Subir o servidor de desenvolvimento
+
+```bash
+npm run dev
+```
+
+O Vite sobe em **http://localhost:5173**. O backend deve estar rodando (por exemplo em `http://localhost:8000`) para as requisições funcionarem.
+
+---
+
+## Scripts disponíveis
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Sobe o servidor de desenvolvimento (Vite) com hot reload |
+| `npm run build` | Compila para produção (`tsc -b && vite build`) |
+| `npm run preview` | Serve o build de produção localmente |
+| `npm run lint` | Executa o ESLint |
+
+---
+
+## Rotas
+
+| Rota | Página | Descrição |
+|------|--------|-----------|
+| `/` | Home | Formulário para enviar texto ou arquivo do e-mail |
+| `/productive` | Resultado produtivo | Exibe classificação produtiva e resposta sugerida |
+| `/unproductive` | Resultado improdutivo | Exibe classificação improdutiva e resposta sugerida |
+| `*` | Not Found | Página 404 |
+
+---
+
+## Deploy com Docker
+
+O frontend é construído em dois estágios:
+
+1. **Build**: imagem Node para instalar dependências e gerar o build estático (`npm run build`).
+2. **Serve**: imagem Nginx Alpine que serve os arquivos em `dist/` e faz **proxy reverso** de `/api` para o backend.
+
+Arquivos relevantes:
+
+- `frontend/Dockerfile` – multi-stage build.
+- `frontend/nginx.conf` – configuração do Nginx (proxy de `/api` para `http://backend:8000/api`).
+
+O `docker-compose` na raiz do repositório orquestra frontend e backend. Não é necessário configurar `VITE_ROUTE_API` no build: o frontend usa `/api` e o Nginx encaminha para o backend.
+
+---
+
+## Documentação de referência
+
+- [React](https://react.dev/)
+- [Vite](https://vite.dev/)
+- [React Router](https://reactrouter.com/)
+- [Tailwind CSS](https://tailwindcss.com/)
