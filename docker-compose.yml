@@ -1,0 +1,23 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: autou-backend
+    env_file:
+      - backend/.env
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: autou-frontend
+    depends_on:
+      - backend
+    ports:
+      - "3003:80"
+    restart: unless-stopped
+

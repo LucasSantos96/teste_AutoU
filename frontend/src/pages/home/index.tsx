@@ -16,7 +16,8 @@ export const HomePage: React.FC = () => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  const ROTA_API = import.meta.env.VITE_ROUTE_API as string;
+  // Usa URL relativa - o Nginx faz proxy reverso para o backend
+  const ROTA_API = "/api";
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
