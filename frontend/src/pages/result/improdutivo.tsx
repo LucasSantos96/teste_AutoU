@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { PageContainer } from '../../components/common/PageContainer'
 import { PrimaryButton } from '../../components/common/PrimaryButton'
-import { Archive, ChevronLeft, Info, Edit3, RefreshCcw } from 'lucide-react'
+import { Archive, ChevronLeft, Info, RefreshCcw } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router'
 import { useTheme } from '../../app/ThemeContext.tsx'
 
@@ -204,15 +204,7 @@ export const ImprodutivoResultPage: React.FC = () => {
                     className="flex-1 justify-center"
                     onClick={handleCopy}
                   />
-                  <button
-                    type="button"
-                    className={`flex h-9 w-9 items-center justify-center rounded-full ${
-                      isDark ? 'bg-slate-800 text-slate-100' : 'bg-slate-100 text-slate-700'
-                    }`}
-                    aria-label="Editar resposta"
-                  >
-                    <Edit3 className="h-4 w-4" />
-                  </button>
+                 
                 </div>
 
               </div>

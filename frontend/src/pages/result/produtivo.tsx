@@ -183,16 +183,12 @@ export const ProdutivoResultPage: React.FC = () => {
                 </div>
 
                 <div className={`px-5 py-3 flex items-center justify-between gap-3 border-t ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
-                  <div className="flex items-center gap-2">
-                    <IconCircleButton
-                      icon={Copy}
-                      label="Copiar"
-                      onClick={handleCopy}
-                      isDark={isDark}
-                    />
-                    <IconCircleButton icon={Edit3} label="Editar" isDark={isDark} />
-                  </div>
-                  <PrimaryButton label="Enviar" />
+                  <PrimaryButton
+                    label="Copiar Resposta"
+                    className="flex-1 justify-center"
+                    onClick={handleCopy}
+                  />
+              
                 </div>
               </div>
             </div>
